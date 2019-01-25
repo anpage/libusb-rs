@@ -552,11 +552,16 @@ impl<'a> DeviceHandle<'a> {
             buf.set_len(len);
         }
 
-        let utf16: Vec<u16> = buf
+        let mut utf16: Vec<u16> = buf
             .chunks(2)
             .skip(1)
             .map(|chunk| u16::from(chunk[0]) | u16::from(chunk[1]) << 8)
             .collect();
+
+        // Truncate data after null character
+        if let Some(i) = utf16.iter().position(|&x| x == 0x0) {
+            utf16.truncate(i);
+        }
 
         String::from_utf16(&utf16[..]).map_err(|_| Error::Other)
     }
